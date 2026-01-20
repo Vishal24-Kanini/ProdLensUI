@@ -1,15 +1,58 @@
 import { AppConfig } from '../types';
 
 /**
- * Parse uploaded zip file (mock implementation for now)
+ * Parse uploaded zip file
  */
 export const parseZipFile = async (file: File): Promise<AppConfig> => {
-  // Mock implementation - in production, you'd use JSZip or similar
   try {
-    const text = await file.text();
-    const config = JSON.parse(text);
-    return config;
-  } catch {
+    // Handle JSON files directly
+    if (file.name.endsWith('.json')) {
+      const text = await file.text();
+      const config = JSON.parse(text);
+      return config;
+    }
+
+    // Handle ZIP files
+    if (file.name.endsWith('.zip')) {
+      // Dynamically import JSZip only when needed
+      const JSZip = (await import('jszip')).default;
+      const zip = new JSZip();
+      const loadedZip = await zip.loadAsync(file);
+
+      // Try to extract metadata.json, blocks.json, and dependencies.json
+      const files: Record<string, any> = {};
+
+      const jsonFiles = ['metadata.json', 'blocks.json', 'dependencies.json', 'config.json'];
+      for (const jsonFile of jsonFiles) {
+        if (loadedZip.file(jsonFile)) {
+          const content = await loadedZip.file(jsonFile)?.async('text');
+          if (content) {
+            files[jsonFile.replace('.json', '')] = JSON.parse(content);
+          }
+        }
+      }
+
+      // Combine extracted files into AppConfig
+      const config: AppConfig = {
+        name: files.metadata?.name || files.config?.name || file.name.replace('.zip', ''),
+        description: files.metadata?.description || files.config?.description || '',
+        blocks: files.blocks || files.config?.blocks || {},
+        dependencies: files.dependencies || files.config?.dependencies || {},
+        metadata: {
+          ...files.metadata,
+          createdAt: files.metadata?.createdAt || new Date().toISOString(),
+          version: files.metadata?.version || '1.0.0',
+        },
+      };
+
+      return config;
+    }
+
+    throw new Error('Unsupported file format. Please upload a .json or .zip file.');
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Failed to parse app configuration: ${error.message}`);
+    }
     throw new Error('Failed to parse app configuration file');
   }
 };
@@ -22,10 +65,10 @@ export const validateAppConfig = (config: unknown): boolean => {
 
   const appConfig = config as Record<string, unknown>;
 
-  // Check for required fields
+  // Check for required fields - only name is mandatory
   return (
     typeof appConfig.name === 'string' &&
-    appConfig.name.length > 0
+    appConfig.name.trim().length > 0
   );
 };
 

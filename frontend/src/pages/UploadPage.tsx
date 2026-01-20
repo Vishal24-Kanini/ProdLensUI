@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { FileUpload } from '../components/FileUpload';
 import { MainLayout } from '../components/MainLayout';
 import { analysisService } from '../services/api';
-import { generateMockAppConfig, validateAppConfig } from '../services/fileService';
+import { generateMockAppConfig, validateAppConfig, parseZipFile } from '../services/fileService';
 import { AlertCircle, Zap } from 'lucide-react';
 
 interface UploadPageProps {
@@ -21,13 +21,12 @@ export const UploadPage: React.FC<UploadPageProps> = ({ onAnalysisComplete, onNa
     setLoading(true);
 
     try {
-      // Parse the file
-      const text = await file.text();
-      const appConfig = JSON.parse(text);
+      // Parse the file (handles both JSON and ZIP)
+      const appConfig = await parseZipFile(file);
 
       // Validate configuration
       if (!validateAppConfig(appConfig)) {
-        throw new Error('Invalid app configuration. Missing required fields.');
+        throw new Error('Invalid app configuration. Missing required fields (name).');
       }
 
       // Send to backend for analysis
