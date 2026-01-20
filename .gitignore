@@ -1,0 +1,65 @@
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+frontend/.DS_Store
+
+# Backend
+backend/venv/
+backend/__pycache__/
+backend/*.pyc
+backend/.env
+backend/.env.example
+backend/.DS_Store
+backend/.venv/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.pydevproject
+.settings/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
+.env.example
+
+# Logs
+*.log
+logs/
+
+# Testing
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Build
+dist/
+build/
+
+# Misc
+.cache/
+*.pid
+
+# Markdown files (except README)
+ARCHITECTURE.md
+DELIVERY_COMPLETE.md
+FEATURES.md
+INDEX.md
+PROJECT_SUMMARY.md
+QUICK_START.md
+SETUP_GUIDE.md
+START_HERE.md
+TESTING_DEPLOYMENT.md
+*.seed
